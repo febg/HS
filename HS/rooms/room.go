@@ -64,7 +64,7 @@ type UserResponse struct {
 	ResponseValue deck.Card
 }
 
-func InitializeRoom() (*Room, string) {
+func InitializeRoom() (*Room, error) {
 	id := uuid.NewV4().String()
 
 	r := &Room{

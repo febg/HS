@@ -14,6 +14,7 @@ import (
 )
 
 func main() {
+
 	controller, err := api.NewController(api.ControllerConfig{
 		MockDB:         true,
 		RoomsHosted:    5,
@@ -23,7 +24,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	r, _ := rooms.InitializeRoom()
+	r, err := rooms.InitializeRoom()
 	err = controller.AddRoom(r)
 	if err != nil {
 		log.Fatal(err)
