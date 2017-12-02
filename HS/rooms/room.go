@@ -2,8 +2,10 @@ package rooms
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"math/rand"
+	"os"
 	"sync"
 	"time"
 
@@ -168,6 +170,14 @@ func (r *Room) PlayerCanJoin() bool {
 }
 
 func (r *Room) StartRound() error {
+	//TestingOnly
+	file, err := os.Create(r.RoomID + ".txt")
+	if err != nil {
+		log.Printf("[ERROR] %v", err)
+		return nil
+	}
+	defer file.Close()
+	//
 	r.Round = 1
 	for !r.CanBeginNextRound() {
 		log.Printf("[INFO] Waiting for players.. %v", len(r.GetRoomPlayers()))
@@ -199,7 +209,7 @@ func (r *Room) StartRound() error {
 		case <-r.TurnTime.C:
 			r.HandleTimeRanOut()
 			for _, v := range r.Players {
-				log.Printf("Current Hand player: %v\n%v\n%v\n%v\n%v\n%v\n%v\nnewCard: %v\n", v.PlayerID, v.CurrentHand[0], v.CurrentHand[1], v.CurrentHand[2], v.CurrentHand[3], v.CurrentHand[4], v.CurrentHand[5], v.NewCard)
+				fmt.Fprintf(file, "Current Hand player: %v\n%v\n%v\n%v\n%v\n%v\n%v\nnewCard: %v\n", v.PlayerID, v.CurrentHand[0], v.CurrentHand[1], v.CurrentHand[2], v.CurrentHand[3], v.CurrentHand[4], v.CurrentHand[5], v.NewCard)
 			}
 			log.Printf("PileDeck: %v", r.PileDeck)
 			//return errors.New("Time Ran Out") //FOR NOW
