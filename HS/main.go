@@ -23,7 +23,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	for i := 0; i < 2; i++ {
+	for i := 0; i < 1; i++ {
 		r, err := rooms.InitializeRoom()
 		err = controller.AddRoom(r)
 		if err != nil {
@@ -47,22 +47,6 @@ func main() {
 			log.Printf("[ERROR] Could not add player to room %s: %v\n", r.RoomID, err)
 		}
 
-		pl = &rooms.Player{
-			PlayerID:    uuid.NewV4().String(),
-			CurrentHand: []deck.Card{},
-		}
-		err = r.AddPlayer(pl)
-		if err != nil {
-			log.Printf("[ERROR] Could not add player to room %s: %v\n", r.RoomID, err)
-		}
-		pl = &rooms.Player{
-			PlayerID:    uuid.NewV4().String(),
-			CurrentHand: []deck.Card{},
-		}
-		err = r.AddPlayer(pl)
-		if err != nil {
-			log.Printf("[ERROR] Could not add player to room %s: %v\n", r.RoomID, err)
-		}
 		go r.StartRound()
 	}
 

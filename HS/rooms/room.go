@@ -234,6 +234,7 @@ func (r *Room) StartRound() error {
 			}
 		}
 	}
+
 	log.Printf("Game Terminated")
 	log.Printf("Pile: %v", r.PileDeck)
 	log.Printf("Player 1 randseq: %v, Player 2 randseq: %v", r.Players[0].RandSeq, r.Players[1].RandSeq)
