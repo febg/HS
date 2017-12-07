@@ -3,11 +3,16 @@ package datastore
 import "github.com/aws/aws-sdk-go/aws/credentials"
 
 type Datastore interface {
-	//MUST have a pointer to client
+	AddUser(UserInfo)
 }
 
 type MockDB struct {
-	//figure out later
+	User []UserInfo
+}
+
+type UserInfo struct {
+	ID    string
+	UName string
 }
 
 type DynamoDB struct {
@@ -15,7 +20,14 @@ type DynamoDB struct {
 }
 
 func NewMockDB() (*MockDB, error) {
-	return nil, nil
+	m := MockDB{
+		User: []UserInfo{},
+	}
+	return &m, nil
+}
+
+func (m *MockDB) AddUser(u UserInfo) {
+	m.User = append(m.User, u)
 }
 
 func NewDynamoDB(creds *credentials.Credentials) (*DynamoDB, error) {

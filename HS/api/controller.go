@@ -12,6 +12,7 @@ type Controller struct {
 	Config ControllerConfig
 	DB     datastore.Datastore
 	Rooms  []*rooms.Room
+	C      chan string
 }
 
 type ControllerConfig struct {
@@ -24,6 +25,7 @@ func NewController(config ControllerConfig) (*Controller, error) {
 	c := Controller{
 		Config: config,
 		Rooms:  []*rooms.Room{},
+		C:      make(chan string),
 	}
 
 	defer log.Printf("[INFO] Started game controller { [Hosted Rooms: %d] [Mocking Datastore: %v] }\n", c.Config.RoomsHosted, c.Config.MockDB)

@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
+	"../datastore"
 	"../rooms"
 	"github.com/gorilla/mux"
+	uuid "github.com/satori/go.uuid"
 )
 
 type GetRoomsResponse struct {
@@ -19,17 +22,45 @@ type RoomSummary struct {
 	NumPlayers int    `json:"players"`
 }
 
-func (c *Controller) JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) GetRoomsHandler(w http.ResponseWriter, r *http.Request) {
 
-	variables := mux.Vars(r)
-	roomID := variables["room_id"]
-
-	p := rooms.Player{
-		PlayerID: "test",
+	roomResponse := GetRoomsResponse{
+		Rooms: []RoomSummary{},
 	}
 
 	for _, room := range c.Rooms {
-		if room.RoomID == roomID {
+		room.Observer.RLock()
+		roomResponse.Rooms = append(roomResponse.Rooms, RoomSummary{
+			RoomID:     room.RoomID,
+			NumPlayers: len(room.Observer.PlayersInRoom),
+		})
+		room.Observer.RUnlock()
+	}
+
+	jsonResponse, err := json.Marshal(roomResponse)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError) //for now, when in prod change
+		fmt.Fprint(w, "ERROR: Could Not marshall room response")
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, string(jsonResponse))
+	return
+}
+
+func (c *Controller) JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
+
+	v := mux.Vars(r)
+	rID := v["room_id"]
+	uID := v["user_id"]
+
+	p := rooms.Player{
+		PlayerID: uID,
+	}
+
+	for _, room := range c.Rooms {
+		if room.RoomID == rID {
 			err := room.AddPlayer(&p) //ignoring error
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
@@ -44,6 +75,30 @@ func (c *Controller) JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusBadRequest)
 	fmt.Fprint(w, string("Room does not exist"))
+}
+
+//LongPollPingHandler Sends a ping to a client after 30s to test long polling
+func (c *Controller) LongPollPingHandler(w http.ResponseWriter, r *http.Request) {
+	go c.longPollPushPingHandler()
+	fmt.Fprintf(w, <-c.C)
+}
+
+// TODO Figure out Client<->Server comm data structures
+func (c *Controller) LogInHandler(w http.ResponseWriter, r *http.Request) {
+	v := mux.Vars(r)
+	u := v["user_name"]
+	p := v["user_password"]
+
+	if u == "" || p == "" {
+		log.Println("-> [ERROR][HANDLER] LogInHandler: Log in information not Complete")
+		fmt.Fprintln(w, "Error: Information Incomplete")
+	}
+	uI := datastore.UserInfo{
+		ID:    uuid.NewV4().String(),
+		UName: u,
+	}
+	c.DB.AddUser(uI)
+	fmt.Fprintf(w, "%v", uI.ID)
 }
 
 func (c *Controller) PlayerMoveHandler(w http.ResponseWriter, r *http.Request) {
@@ -76,29 +131,9 @@ func (c *Controller) PlayerMoveHandler(w http.ResponseWriter, r *http.Request) {
 	//log.Println(action)
 }
 
-func (c *Controller) GetRoomsHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) longPollPushPingHandler() {
+	time.Sleep(30 * time.Second)
+	c.C <- "ping"
+	log.Printf("control channel: %v", c.C)
 
-	roomResponse := GetRoomsResponse{
-		Rooms: []RoomSummary{},
-	}
-
-	for _, room := range c.Rooms {
-		room.Observer.RLock()
-		roomResponse.Rooms = append(roomResponse.Rooms, RoomSummary{
-			RoomID:     room.RoomID,
-			NumPlayers: len(room.Observer.PlayersInRoom),
-		})
-		room.Observer.RUnlock()
-	}
-
-	jsonResponse, err := json.Marshal(roomResponse)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError) //for now, when in prod change
-		fmt.Fprint(w, "ERROR: Could Not marshall room response")
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprint(w, string(jsonResponse))
-	return
 }

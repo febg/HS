@@ -59,11 +59,7 @@ type Room struct {
 	ResponseGetter       chan PlayerAction
 	Round                int
 	Observer             *observer.RoomObserver
-}
-
-type UserResponse struct {
-	ResponseType  string //One of SWITCH, FLIP, QUIT
-	ResponseValue deck.Card
+	C                    chan string
 }
 
 func InitializeRoom() (*Room, error) {

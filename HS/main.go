@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"net/http"
-	"time"
 
 	"./deck"
 	uuid "github.com/satori/go.uuid"
@@ -38,19 +37,10 @@ func main() {
 			log.Printf("[ERROR] Could not add player to room %s: %v\n", r.RoomID, err)
 		}
 
-		pl = &rooms.Player{
-			PlayerID:    uuid.NewV4().String(),
-			CurrentHand: []deck.Card{},
-		}
-		err = r.AddPlayer(pl)
-		if err != nil {
-			log.Printf("[ERROR] Could not add player to room %s: %v\n", r.RoomID, err)
-		}
-
-		go r.StartRound()
+		//go r.StartRound()
 	}
 
-	time.Sleep(8000 * time.Millisecond)
+	//time.Sleep(8000 * time.Millisecond)
 
 	router := api.GetRouter(controller)
 
