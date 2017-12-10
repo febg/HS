@@ -76,10 +76,10 @@ var (
 
 // Card represents the state of card of a particular type and suit
 type Card struct {
-	Type           string
-	Suit           string
-	FaceUp         bool
-	VisibleToOwner bool
+	Type           string `json:"Type"`
+	Suit           string `json:"Suit"`
+	FaceUp         bool   `json:"FaceUp"`
+	VisibleToOwner bool   `json:"VisibleToOwner"`
 }
 
 //FlipUp flips a card up for every player to see it

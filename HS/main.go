@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -39,9 +40,50 @@ func main() {
 
 		//go r.StartRound()
 	}
-
+	c := deck.Card{
+		Type:           "TestType",
+		Suit:           "TestSuit",
+		FaceUp:         false,
+		VisibleToOwner: true,
+	}
+	pl := &rooms.Player{
+		PlayerID:    uuid.NewV4().String(),
+		CurrentHand: []deck.Card{c, c},
+	}
 	//time.Sleep(8000 * time.Millisecond)
-
+	testResponse := rooms.ServerResponse{
+		Info: rooms.Info{
+			RoomID: "Tests",
+			Type:   "Test",
+			PIC:    "Test",
+		},
+		Data: rooms.Data{
+			PlayerAction: rooms.PlayerAction{
+				Type:         "Test",
+				RoomID:       "TestRoomID",
+				PlayerID:     "Test",
+				FlipCardType: "TestFlip",
+				FlipCardSuit: "TestSuit",
+			},
+			Players: []*rooms.Player{pl, pl, pl},
+			DeckTop: deck.Card{
+				Type:           "TestType",
+				Suit:           "TestSuit",
+				FaceUp:         false,
+				VisibleToOwner: true,
+			},
+			PileTop: deck.Card{
+				Type:           "TestType",
+				Suit:           "TestSuit",
+				FaceUp:         false,
+				VisibleToOwner: true,
+			},
+			PICStart: "TestPIC",
+			TimeOut:  false,
+		},
+	}
+	bytesJSON, _ := json.Marshal(&testResponse)
+	log.Println(string(bytesJSON))
 	router := api.GetRouter(controller)
 
 	log.Println("[INFO] Listening on http://localhost:8081")

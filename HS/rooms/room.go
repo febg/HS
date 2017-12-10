@@ -62,6 +62,26 @@ type Room struct {
 	C                    chan string
 }
 
+type ServerResponse struct {
+	Info Info `json:"Info"`
+	Data Data `json:"Data"`
+}
+
+type Info struct {
+	RoomID string `json:"RoomID"`
+	Type   string `json:"Type"`
+	PIC    string `json:"PlayerInControl"`
+}
+
+type Data struct {
+	PlayerAction PlayerAction `json:"PlayerAction"`
+	Players      []*Player    `json:"Players"`
+	DeckTop      deck.Card    `json:"DeckTop"`
+	PileTop      deck.Card    `json:"PileTop"`
+	PICStart     string       `json:"PICStart"`
+	TimeOut      bool         `json:"TimeOut"`
+}
+
 func InitializeRoom() (*Room, error) {
 	id := uuid.NewV4().String()
 
