@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"../datastore"
+	"../deck"
 	"../rooms"
 	"github.com/gorilla/mux"
 	uuid "github.com/satori/go.uuid"
@@ -58,13 +59,14 @@ func (c *Controller) JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 	p := rooms.Player{
 		PlayerID: uID,
 	}
-
 	for _, room := range c.Rooms {
+		log.Printf("Entered RoomID %v, %v", rID, room.RoomID)
 		if room.RoomID == rID {
+			log.Printf("IF")
 			err := room.AddPlayer(&p) //ignoring error
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
-				fmt.Fprint(w, string("Can not join a full room"))
+				fmt.Println("Can not join a full room")
 				return
 			}
 			w.WriteHeader(http.StatusOK)
@@ -133,7 +135,41 @@ func (c *Controller) PlayerMoveHandler(w http.ResponseWriter, r *http.Request) {
 
 func (c *Controller) longPollPushPingHandler() {
 	time.Sleep(30 * time.Second)
-	c.C <- "ping"
+
+	testResponse := rooms.ServerResponse{
+		Info: rooms.Info{
+			RoomID: c.Rooms[0].RoomID,
+			Type:   "Action",
+			PIC:    c.Rooms[0].Players[0].PlayerID,
+		},
+		Data: rooms.Data{
+			PlayerAction: rooms.PlayerAction{
+				Type:         "Flip",
+				RoomID:       c.Rooms[0].RoomID,
+				PlayerID:     c.Rooms[0].Players[0].PlayerID,
+				FlipCardType: "2",
+				FlipCardSuit: "Club",
+			},
+			Players: c.Rooms[0].Players,
+			DeckTop: deck.Card{
+				Type:           "2",
+				Suit:           "Dimond",
+				FaceUp:         true,
+				VisibleToOwner: true,
+			},
+			PileTop: deck.Card{
+				Type:           "k",
+				Suit:           "Heart",
+				FaceUp:         true,
+				VisibleToOwner: true,
+			},
+			PICStart: "TestPIC",
+			TimeOut:  false,
+		},
+	}
+	bytesJSON, _ := json.Marshal(&testResponse)
+
+	c.C <- string(bytesJSON)
 	log.Printf("control channel: %v", c.C)
 
 }
