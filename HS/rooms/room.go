@@ -196,7 +196,7 @@ func (r *Room) StartRound() error {
 	//
 	r.Round = 1
 	for !r.CanBeginNextRound() {
-		log.Printf("[INFO] Waiting for players.. %v", len(r.GetRoomPlayers()))
+		//log.Printf("[INFO] Waiting for players.. %v", len(r.GetRoomPlayers()))
 	}
 	r.Lock()
 	log.Printf("[INFO] Started Round on Room: %s\n", r.RoomID)

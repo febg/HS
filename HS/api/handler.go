@@ -18,9 +18,15 @@ type GetRoomsResponse struct {
 	Rooms []RoomSummary `json:"rooms"`
 }
 
+type JoinRoomResponse struct {
+	RoomData RoomSummary     `json:"RoomInfo"`
+	PIC      string          `json:"PIC"`
+	Players  []*rooms.Player `json:"Players"`
+}
+
 type RoomSummary struct {
-	RoomID     string `json:"room_id"`
-	NumPlayers int    `json:"players"`
+	RoomID     string `json:"RoomID"`
+	NumPlayers int    `json:"Players"`
 }
 
 func (c *Controller) GetRoomsHandler(w http.ResponseWriter, r *http.Request) {
@@ -63,14 +69,24 @@ func (c *Controller) JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Entered RoomID %v, %v", rID, room.RoomID)
 		if room.RoomID == rID {
 			log.Printf("IF")
-			err := room.AddPlayer(&p) //ignoring error
+			err := room.AddPlayer(&p) //ignoring erro
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				fmt.Println("Can not join a full room")
 				return
 			}
+			jr := JoinRoomResponse{
+				RoomData: RoomSummary{
+					RoomID:     room.RoomID,
+					NumPlayers: room.PlayersLeft,
+				},
+				PIC:     room.PlayerInControl,
+				Players: room.Players,
+			}
+			bytesJSON, _ := json.Marshal(&jr)
 			w.WriteHeader(http.StatusOK)
-			fmt.Fprint(w, string("joined room"))
+
+			fmt.Fprint(w, string(bytesJSON))
 			return
 		}
 	}
@@ -134,7 +150,7 @@ func (c *Controller) PlayerMoveHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) longPollPushPingHandler() {
-	time.Sleep(30 * time.Second)
+	time.Sleep(10 * time.Second)
 
 	testResponse := rooms.ServerResponse{
 		Info: rooms.Info{
